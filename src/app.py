@@ -4,11 +4,12 @@ from flask_restful import Api
 from resources.people import People
 from resources.photo import Photo, Photos
 from config import config
-
+from flask_cors import CORS
 
 app = Flask(__name__)
 api = Api(app)
 app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
+CORS(app)
 
 
 api.add_resource(People, '/people')

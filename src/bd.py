@@ -1,5 +1,5 @@
 import pymysql
-db = pymysql.connect(host="localhost", user="dbNixRoot", password="gFYbUk@I6Svp",
-                     database="db_face", cursorclass=pymysql.cursors.DictCursor)
+db = pymysql.connect(host="localhost", user="root", password="",
+                     database="db_face_prod", cursorclass=pymysql.cursors.DictCursor)
 
 cursor = db.cursor()

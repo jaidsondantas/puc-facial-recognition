@@ -52,10 +52,8 @@ class Photos(Resource):
         files = request.files
         if files:
             file = files['file']
-            print(files)
             filename = str(uuid.uuid4()) + ".jpg"
             file.save(os.path.join(config.UPLOAD_FOLDER, filename))
-            print(filename)
 
             photo = face_recognition.load_image_file(
                 os.path.join(config.UPLOAD_FOLDER, filename))
@@ -63,12 +61,12 @@ class Photos(Resource):
             photo_np = np.asarray(photo)
             photo_np = Image.fromarray(photo_np)
             photo_np = photo_np.resize((640, 640))
+            pil_image = photo_np
+            draw = ImageDraw.Draw(pil_image)
 
             found_faces, face_locations = extract_faces(photo_np)
             lasts = []
             face_encodings = []
-            pil_image = photo_np
-            draw = ImageDraw.Draw(pil_image)
 
             if len(found_faces):
 
@@ -118,7 +116,7 @@ def insertPhoto(enc, person, precision):
     if person:
         tuple = (json.dumps(enc[0].tolist()), person['id'], precision)
     else:
-        tuple = (json.dumps(enc[0].tolist()), 1, precision)
+        tuple = (json.dumps(enc[0].tolist()), 0, precision)
 
     cursor.execute(query, tuple)
     db.commit()
@@ -164,7 +162,6 @@ def generateImagePreview(face_locations, face_encodings, draw):
             if len(face_distances):
                 best_match_index = np.argmin(face_distances)
                 if matches[best_match_index]:
-                    name = photos[best_match_index]['name']
                     person = {
                         "name": photos[best_match_index]['name'],
                         "id": photos[best_match_index]['id_person']
@@ -172,14 +169,28 @@ def generateImagePreview(face_locations, face_encodings, draw):
 
                     photo = insertPhoto(
                         face_encoding, person, face_distances[best_match_index])
+                    photo['person'] = person
+                    name = photos[best_match_index]['name'] + \
+                        " " + str(photo["id"])
                     photosAdded.append(photo)
                 else:
+                    person = {
+                        "id": 0,
+                        "name": "Desconhecido"
+                    }
                     photo = insertPhoto(face_encoding, None,
                                         face_distances[best_match_index])
+                    photo["person"] = person
+
                     photosAdded.append(photo)
                     name = "Desconhecido " + str(photo['id'])
             else:
+                person = {
+                    "id": 0,
+                    "name": "Desconhecido"
+                }
                 photo = insertPhoto(face_encoding, None, 0)
+                photo["person"] = person
                 photosAdded.append(photo)
                 name = "Desconhecido " + str(photo['id'])
 
